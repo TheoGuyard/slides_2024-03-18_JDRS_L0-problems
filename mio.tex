@@ -1,0 +1,209 @@
+\section{Mixed-Integer Optimization}
+
+\begin{frame}{Handeling the L0-norm with MIO tools}
+    \begin{tikzpicture}[remember picture,overlay]
+        \onslide<+-> {
+            \node[text width=0.4\textwidth] at ($(current page.north)+(0,-0.21\textheight)$) (problem) {
+                \begin{blockcolor}{Brown}{Sparse problem}
+                    \centering
+                    $\min_{\pv} \lossfunc(\pv) + \reg \norm{\pv}{0}$
+                \end{blockcolor}
+            };
+            %
+            \node[text width=0.2\textwidth] at ($(current page.north)+(0,-0.45\textheight)$) (solution) {
+                \begin{blockcolor}{black}{}
+                    \centering
+                    \textbf{Solution}
+                \end{blockcolor}
+            };
+            %
+            \draw[ultra thick,->] (problem) -- ($(solution)+(0,0.15)$) node[midway,fill=white,draw] {Solver};
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \draw[ultra thick,<-] (problem.south east) .. controls ($(problem.south east)+(1,-0.25)$) .. ($(problem.south east)+(1,-0.5)$) node[below,font=\scriptsize,align=center,text width=0.3\textwidth] {$\ell_0$-norm is non-linear, non-convex, non-smooth, NP-hard, ...};
+            \node at ($(problem.south east)+(1,-2)$) {
+                \includegraphics[width=15pt]{imgs/dizzy.png}
+            };  
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \node[text width=0.325\textwidth, font=\small,align=center] at ($(current page.north)+(-4.25,-0.75\textheight)$) (l0norm) {The $\ell_0$-norm \emphcolor{Brown}{counts} the number of non-zeros in $\pv$};
+            %
+            \node[text width=0.4\textwidth, font=\small,align=center] at ($(current page.north)+(0,-0.75\textheight)$) (binary) {Encode the nullity in some \emphcolor{Brown}{binary} vector $\bv$};
+            \draw[ultra thick,->] ($(l0norm.south east)+(-0.5,-0.25)$) .. controls ($(current page.north)+(-2.25,-0.9\textheight)$) .. ($(binary.south west)+(0.5,-0.25)$);
+            %
+            \node[text width=0.325\textwidth, font=\small,align=center] at ($(current page.north)+(4.25,-0.75\textheight)$) (mio) {We know how to deal with this in \emphcolor{Brown}{MIO} !};
+            \draw[ultra thick,->] ($(binary.south east)+(-0.5,-0.25)$) .. controls ($(current page.north)+(2.25,-0.9\textheight)$) .. ($(mio.south west)+(0.5,-0.25)$);
+        }
+    \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Fitting the MIO formalism}
+    \begin{tikzpicture}[remember picture,overlay]
+        \onslide<+-> {
+            \node[text width=0.7\textwidth] at ($(current page.north)+(0,-0.25\textheight)$) (modelling) {
+                \begin{block}{Linearizing the $\ell_0$-norm}
+                    Real vector \emphcolor{Brown}{$\pv \in \kR^{\pdim}$} and binary vector \emphcolor{Brown}{$\bv \in \text{B}^{\pdim}$}:
+                    \begin{center}
+                        $\norm{\pv}{0} = \transp{\1}\bv \quad$ if $\quad \pv \odot (\1 - \bv) = \0$
+                    \end{center}
+                \end{block}
+            };
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \node[draw,ultra thick] at ($(current page.north)+(0,-0.5\textheight)$) (init-problem) {$\min_{\pv} \lossfunc(\pv) + \reg \emphcolor{Brown}{\norm{\pv}{0}}$};
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \node[draw,ultra thick] at ($(init-problem)+(0,-0.15\textheight)$) (problem) {$\min_{\pv,\emphcolor{Brown}{\bv}} \lossfunc(\pv) + \reg \emphcolor{Brown}{\transp{\1}\bv} + \emphcolor{Brown}{\pertfunc(\pv,\bv)}$};
+            \draw[ultra thick,->] (init-problem.south) -- (problem.north);
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \node[draw,ultra thick] at ($(problem)+(0,-0.2\textheight)$) (bigm) {$\begin{array}{rl}
+                    \min_{\pv,\bv} & \lossfunc(\pv) + \reg \emphcolor{Brown}{\transp{\1}\bv} \\ 
+                    \text{s.t.} & \emphcolor{Brown}{-\bigM\bv \leq \pv \leq \bigM\bv}
+                \end{array}$};
+            \draw[ultra thick,->] (problem) -- (bigm.north);
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \node[align=center,text width=0.7\textwidth, font=\scriptsize] at ($(bigm)+(0,-0.16\textheight)$) (bigm) {Generic MIO solvers \\ Branch-and-bound \\ Cutting planes \\ ...};
+        }
+    \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Overview of solution methods}
+    \begin{tikzpicture}[remember picture,overlay]
+        \onslide<+-> {
+            \node at ($(current page.north)+(0,-0.25\textheight)$) (origin) {};
+            %
+            \node[align=center,text width=0.6\textwidth] at ($(origin)+(-2.75,0)$) {\textbf{Branch-and-Bound} \\ \textit{``Explore regions in the feasible \\ space and discard those that cannot contain solutions.''}};
+            %
+            \node[align=center,text width=0.6\textwidth] at ($(origin)+(2.75,0)$) {\textbf{Cutting Planes} \\ \textit{``Add valid cuts to restrict the \\ feasible space until the optimum is isolated.''}};
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \node (bnbpoint1) at ($(origin)+(1,-2.75)$) {\Large{$\bullet$}};
+            \node (bnbpoint2) at ($(origin)+(0,-2.75)$) {\Large{$\bullet$}};
+            \node (bnbpoint3) at ($(origin)+(-1,-2.75)$) {\Large{$\bullet$}};
+            \node (bnbpoint4) at ($(origin)+(1.75,-4)$) {\Large{$\bullet$}};
+            \node (bnbpoint5) at ($(origin)+(0.75,-4)$) {\Large{$\bullet$}};
+            \node (bnbpoint6) at ($(origin)+(-0.25,-4)$) {\Large{$\bullet$}};
+            \node (bnbpoint7) at ($(origin)+(-1.25,-4)$) {\Large{$\bullet$}};
+            \node (bnbpoint8) at ($(origin)+(-2.25,-4)$) {\Large{$\bullet$}};
+            \node (bnbpoint9) at ($(origin)+(1,-5.25)$) {\Large{$\bullet$}};
+            \node (bnbpoint10) at ($(origin)+(0,-5.25)$) {\Large{$\bullet$}};
+            \node (bnbpoint11) at ($(origin)+(-1,-5.25)$) {\Large{$\bullet$}};
+            \node (bnbpoint12) at ($(origin)+(-2,-5.25)$) {\Large{$\bullet$}};
+            %
+            \node (bnbpath0) at ($(origin)+(-2.5,-3.5)$) {};
+            \node (bnbpath1) at ($(bnbpath0)+(1,1)$) {};
+            \node (bnbpath2) at ($(bnbpath0)+(4,1.5)$) {};
+            \node (bnbpath3) at ($(bnbpath0)+(2,-2.5)$) {};
+            \node (bnbpath4) at ($(bnbpath0)+(0,-1.5)$) {};
+            \path[ultra thick,draw,use Hobby shortcut,closed=true] (bnbpath0)..(bnbpath1)..(bnbpath2)..(bnbpath3)..(bnbpath4);
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \draw[ultra thick,dashed] (bnbpath2) -- ($(bnbpath4)+(0.25,-0.2)$);
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \node at (bnbpoint2) {\textcolor{purple}{\LARGE\ding{55}}};
+            \node at (bnbpoint3) {\textcolor{purple}{\LARGE\ding{55}}};
+            \node at (bnbpoint7) {\textcolor{purple}{\LARGE\ding{55}}};
+            \node at (bnbpoint8) {\textcolor{purple}{\LARGE\ding{55}}};
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \draw[ultra thick,dashed] ($(bnbpoint6)+(0.4,0.75)$) -- ($(bnbpoint6)+(1,-1.7)$);
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \node at (bnbpoint1) {\textcolor{purple}{\LARGE\ding{55}}};
+            \node at (bnbpoint4) {\textcolor{purple}{\LARGE\ding{55}}};
+            \node at (bnbpoint5) {\textcolor{purple}{\LARGE\ding{55}}};
+            \node at (bnbpoint9) {\textcolor{purple}{\LARGE\ding{55}}};
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \draw[ultra thick,dashed] ($(bnbpoint6)+(-1,-0.5)$) -- ($(bnbpoint6)+(0.75,-0.5)$);
+            \node at (bnbpoint10) {\textcolor{purple}{\LARGE\ding{55}}};
+            \node at (bnbpoint11) {\textcolor{purple}{\LARGE\ding{55}}};
+            \node at (bnbpoint12) {\textcolor{purple}{\LARGE\ding{55}}};
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \node (bnbpoint6) at ($(origin)+(-0.25,-4)$) {\Large{\textcolor{Brown}{$\bullet$}}};
+        }
+    \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Ongoing Research Directions}
+    \begin{tikzpicture}[remember picture,overlay]
+        \onslide<+-> {
+            \node[fill=Brown] at ($(current page.north)+(4.8,-1.3)$) {\emphcolor{white}{Non-exhaustive list}};
+            \node[align=center,text width=0.3\linewidth] (europe) at ($(current page.center)+(3.75,-2.5)$) {\includegraphics[width=1.5\textwidth]{imgs/europe.png}};
+            %
+            \draw[<-,ultra thick] ($(europe)+(-0.2,-0.7)$) .. controls ($(europe)+(-4,-0.7)$) .. ($(europe)+(-5,-0.9)$) node [below left,align=center,font=\scriptsize] {\emphcolor{Brown}{\textbf{Inria / Insa / Ensai / CentraleSupélec}}~\\ \emphcolor{Brown}{T. Guyard, C. Herzet, C. Elvira, A. Arslan}~\\\textit{\emphcolor{Brown}{Generalization, acceleration}}};
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            \draw[<-,ultra thick] ($(europe)+(0.7,1)$) .. controls ($(europe)+(0.5,1.5)$) .. ($(europe)+(1.1,3.5)$) node [above,align=center,font=\scriptsize] {\textbf{Lund University}~\\ M. Carlsson, C. Olsson...~\\\textit{Quadratic envelope}};
+            %
+            \draw[<-,ultra thick] ($(europe)+(0.4,0.1)$) .. controls ($(europe)+(-0.5,1.5)$) .. ($(europe)+(-1.2,2.5)$) node [above,align=center,font=\scriptsize] {\textbf{Frankfurt / Wurzburg Universities}~\\ C. Kanzow, A. Tillmann, ...~\\\textit{Optimality conditions}};
+            %
+            \draw[<-,ultra thick] ($(europe)+(-0.4,0.5)$) .. controls ($(europe)+(-1,1.3)$) .. ($(europe)+(-2,1.5)$) node [above left,align=center,font=\scriptsize] {\textbf{London Business School}~\\ J. Pauphilet, R. Cory-Wright, ...~\\\textit{Healthcare applications}};
+            %
+            \draw[<-,ultra thick] ($(europe)+(0.2,-0.6)$) .. controls ($(europe)+(-1.5,0.8)$) .. ($(europe)+(-2.5,0.9)$) node [left,align=center,font=\scriptsize] {\textbf{Ponts ParisTech}~\\ M. De Lara, P. Chancelier, A. Parmentier, ...~\\\textit{Non-convex analysis for $\ell_0$-norm, ML appli.}};
+            %
+            \draw[<-,ultra thick] ($(europe)+(-0.4,-0.4)$) .. controls ($(europe)+(-1,-0.4)$) .. ($(europe)+(-5,-0.2)$) node [left,align=center,font=\scriptsize] {\textbf{Centrale Nantes / ENSTA Bretagne}~\\ S. Bourguignon, J. Ninin, ...~\\\textit{Branch-and-Bound for $\ell_0$-problems}};
+            %
+            \draw[<-,ultra thick] ($(europe)+(0,-0.9)$) .. controls ($(europe)+(-0.5,-1.5)$) .. ($(europe)+(-1.2,-1.5)$) node [left,align=center,font=\scriptsize] {\textbf{IRIT / I3S}~\\ E. Soubies, L. Blanc-Féraud, ...~\\\textit{Tight relax. of $\ell_0$-norm}};
+        }
+        %
+        %
+        %
+        \onslide<+-> {
+            %
+            \node[align=center,text width=0.3\linewidth] (usa) at ($(current page.center)+(-2.3,1.7)$) {\includegraphics[width=1.5\textwidth]{imgs/usa.png}};
+            %
+            \draw[<-,ultra thick] ($(usa)+(1.9,-0.7)$) .. controls ($(usa)+(4.7,-0.4)$) .. ($(usa)+(5,0.3)$) node [above,align=center,font=\scriptsize] {\textbf{MIT}~\\ D. Bertsimas, R. Mazmuder, ...~\\\textit{MIO theory for $\ell_0$-problems}};
+            %
+            \draw[<-,ultra thick] ($(usa)+(0.25,0.45)$) .. controls ($(usa)+(-1.9,0.1)$) .. ($(usa)+(-2.3,-0.1)$) node [below,align=center,font=\scriptsize] {\textbf{Google Deep Mind}~\\ H. Hazimeh, A. Dedieu, ...~\\\textit{MIO-based heuristics}};
+            %
+            \draw[<-,ultra thick] ($(usa)+(-0.5,-1.2)$) .. controls ($(usa)+(-1.5,-1.4)$) .. ($(usa)+(-2,-1.9)$) node [below,align=center,font=\scriptsize] {\textbf{Berkley}~\\ A. Atamtürk, A. Gomès, ...~\\\textit{Convex-based acceleration}};
+        }
+    \end{tikzpicture}
+\end{frame}
